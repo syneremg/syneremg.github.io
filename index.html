@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+    content="Surface electromyography (sEMG) signals show promise for effective human–computer interfaces, particularly in rehabilitation and prosthetics. However, challenges remain in developing systems that respond quickly and reliably to user intent, across different subjects and without requiring time-consuming calibration. In this work, we propose a framework for EMG-based intent detection that addresses these challenges. Unlike traditional gesture recognition models that wait until a gesture is completed before classifying it, our approach uses a segmentation strategy to assign intent labels at every timestep as the gesture unfolds. We introduce a novel masked modeling strategy that aligns muscle activations with their corresponding user intents, enabling rapid onset detection and stable tracking of ongoing gestures. In evaluations against baseline methods, considering both accuracy and stability for device control, our approach surpasses state-of-the-art performance in zero-shot transfer conditions, demonstrating its potential for wearable robotics and next-generation prosthetic systems.">
+  <meta name="author" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Zero-Shot, Low-Latency Intent Detection via sEMG</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+
+<body>
+
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- <section>
+    <div class="hero-video" style="position: absolute; inset: 0;">
+      <img src="static/img/teaser.png" style="width: 100vw;  object-fit: cover;">
+    </div>
+  </section> -->
+
+  <section class="hero">
+    <div class="hero-body">
+      <div class="container is-max-desktop">
+        <div class="columns is-centered">
+          <div class="column has-text-centered">
+
+            <!-- combine title and subtitle in one block -->
+            <div class="publication-header">
+              <h1 style="margin-bottom: 0; font-size: 300%">
+                SynerEMG
+              </h1>
+              <h1 class="title is-2 publication-title">
+                Zero-Shot, Low-Latency Intent Detection via sEMG
+              </h1>
+
+              <p class="subtitle" style="margin: 0.5rem 0 0 0; color: #666; white-space: nowrap;">
+                <span class="author-block"><a href="">Runsheng Wang<sup>*</sup></a>,</span>
+                <span class="author-block"><a href="">Xinyue Zhu<sup>*</sup></a>,</span>
+                <span class="author-block"><a href="">Ava Chen</a>,</span>
+                <span class="author-block"><a href="">Jingxi Xu</a>,</span>
+                <span class="author-block"><a href="">Lauren Winterbottom</a>,</span>
+                <span class="author-block"><a href="">Dawn M. Nilsen</a>,</span>
+                <span class="author-block"><a href="">Joel Stein</a>,</span>
+                <span class="author-block"><a href="">Matei Ciocarlie</a></span>
+              </p>
+              <p class="is-size-5 publication-authors" style="margin: 0; color: #666;">
+                <sup>*</sup>Equal contribution, Columbia University
+              </p>
+
+
+            <br><br>
+
+
+
+            <!-- social / publication links -->
+            <div class="columns is-centered has-text-centered">
+              <div class="publication-links">
+                <span class="link-block">
+                  <a href="https://arxiv.org/pdf/2410"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fas fa-file-pdf"></i></span>
+                    <span>Paper</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://arxiv.org/abs/2410"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="ai ai-arxiv"></i></span>
+                    <span>arXiv</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://www.youtube.com/watch?"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fab fa-youtube"></i></span>
+                    <span>Video</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="https://x.com/"
+                    class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fab fa-twitter"></i></span>
+                    <span>Twitter</span>
+                  </a>
+                </span>
+                <span class="link-block">
+                  <a href="" class="external-link button is-normal is-rounded is-dark">
+                    <span class="icon"><i class="fab fa-github"></i></span>
+                    <span>Code</span>
+                  </a>
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+  <div class="container">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-4">
+          By simply wearing a Myo armband, our joint-learning EMG model provides accurate, low-latency intent predictions on new users with no calibration required!
+        </h2>
+        <h2 class="title is-5" style="color: rgb(189, 189, 189);">
+          (The model can also be deployed to control a robotic hand orthosis.)
+        </h2>
+        <div class="columns is-centered has-text-centered">
+          <div class="column is-full-width">
+            <h3 class="title is-4"></h3>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="overall teaser">
+    <div class="container">
+      <div class="hero-body has-text-centered">
+        <video
+          id="teaser_video"
+          width="100%"
+          muted
+          autoplay
+          playsinline
+          controls
+          preload="auto"
+          style="border-radius:10px;"
+        >
+          <source src="video/final_video_compressed.mp4" type="video/mp4">
+        </video>
+      </div>
+    </div>
+  </section>
+
+
+  <br><br>
+  <section class="representation">
+    <div class="container">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-full-width">
+          <!-- Change heading to: "Visuo-Tactile Pretraining & Downstream Imitation Learning" -->
+          <h2 class="title is-3">Offline EMG Model Intent Detection</h2>
+          <div class="content has-text-justified">
+            <div class="column is-full-width" style="color: grey;">
+              <b>(1) Same Subject, Different Task</b>. On a new, unseeen subject, our model can accurately detects open and close intents across diverse real-world tasks that contain different arm movements.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- First figure, now 80% width and centered -->
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="columns is-centered">
+            <div class="column content">
+              <picture class="image">
+                <img
+                  alt="offline_prediction_6"
+                  src="static/img/offline_prediction_6.png"
+                  style="width: 80%; margin: 0 auto; display: block; border-radius:10px;"
+                >
+              </picture>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grey text, left-aligned with same style as other grey text -->
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="content has-text-left">
+            <div class="column is-full-width" style="color: grey;">
+              <b>(2) Same Task, Different Subjects</b>. In the static hanging task—where subjects perform open and close gestures while keeping their arm hanging at their side—our model accurately detects open and close intents across different subjects, even when their EMG signals exhibit vastly different coactivation patterns.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Second figure, also 80% width and centered -->
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="columns is-centered">
+            <div class="column content">
+              <picture class="image">
+                <img
+                  alt="offline_prediction_subject2"
+                  src="static/img/offline_prediction_9.png"
+                  style="width: 80%; margin: 0 auto; display: block; border-radius:10px;"
+                >
+              </picture>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <br><br>
+  <section class="representation">
+    <div class="container">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Method</h2>
+          <div class="content has-text-justified">
+            <p>
+              Our model treats 8-channel EMG signals and intent labels as two synchronized input streams: each is embedded, randomly masked in contiguous spans, and concatenated into a single sequence as input to Transformer encoders. The network is trained to reconstruct masked EMG signals (via a regression loss) and masked intent tokens (via a classification loss), which forces tight alignment between muscle activity and user intention. As a result, it delivers fast, stable intent predictions at every timestep—no manual features or per-user calibration required.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="columns is-centered">
+            <div class="column content">
+              <picture class="image">
+                <img
+                  alt="offline_prediction_6"
+                  src="static/img/architecture.png"
+                  style="width: 80%; margin: 0 auto; display: block; border-radius:10px;"
+                >
+              </picture>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+
+  <br><br>
+  <section class="representation">
+    <div class="container">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">New Metrics: Transition Metrics</h2>
+          <div class="content has-text-justified">
+            <p>
+              Unlike standard per-timestep accuracy metrics that don't capture real-world control dynamics, <strong>Transition Metrics</strong> assess both the speed and stability of intent changes. For each actual intent transition, the model must predict the new intent at least once within a brief “reaction buffer” and then sustain that correct label through the ensuing “maintenance period" until the next transition. By enforcing prompt detection and penalizing any flicker, these metrics provide a rigorous measure of continuous-control performance.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="columns is-centered">
+        <div class="column is-full-width">
+          <div class="columns is-centered">
+            <div class="column content">
+              <picture class="image">
+                <img
+                  alt="offline_prediction_6"
+                  src="static/img/transition_metrics.png"
+                  style="width: 80%; margin: 0 auto; display: block; border-radius:10px;"
+                >
+              </picture>
+            </div>
+          </div>
+        </div>
+      </div>
+  </section>
+
+
+</html>
