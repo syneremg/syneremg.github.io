@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="description"
-    content="Surface electromyography (sEMG) signals show promise for effective human–computer interfaces, particularly in rehabilitation and prosthetics. However, challenges remain in developing systems that respond quickly and reliably to user intent, across different subjects and without requiring time-consuming calibration. In this work, we propose a framework for EMG-based intent detection that addresses these challenges. Unlike traditional gesture recognition models that wait until a gesture is completed before classifying it, our approach uses a segmentation strategy to assign intent labels at every timestep as the gesture unfolds. We introduce a novel masked modeling strategy that aligns muscle activations with their corresponding user intents, enabling rapid onset detection and stable tracking of ongoing gestures. In evaluations against baseline methods, considering both accuracy and stability for device control, our approach surpasses state-of-the-art performance in zero-shot transfer conditions, demonstrating its potential for wearable robotics and next-generation prosthetic systems.">
+    content="Surface electromyography (sEMG) signals show promise for effective human–computer interfaces, particularly in rehabilitation and prosthetics. However, challenges remain in developing systems that respond quickly and reliably to user intent, across different subjects and without requiring time-consuming calibration. In this work, we propose a framework for EMG-based intent detection that addresses these challenges. Unlike traditional gesture recognition models that wait until a gesture is completed before classifying it, ReactEMG uses a segmentation strategy to assign intent labels at every timestep as the gesture unfolds. We introduce a novel masked modeling strategy that aligns muscle activations with their corresponding user intents, enabling rapid onset detection and stable tracking of ongoing gestures. In evaluations against baseline methods, considering both accuracy and stability for device control, our approach surpasses state-of-the-art performance in zero-shot transfer conditions, demonstrating its potential for wearable robotics and next-generation prosthetic systems.">
   <meta name="author" content="">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Zero-Shot, Low-Latency Intent Detection via sEMG</title>
@@ -54,7 +54,7 @@
 
               <div class="publication-header">
                 <h1 class="title is-2 publication-title">
-                  <b>ZeroEMG</b>: Zero-Shot, Low-Latency Intent Detection via sEMG
+                  <b>ReactEMG</b>: Zero-Shot, Low-Latency Intent Detection via sEMG
                 </h1>
 
                 <p class="subtitle is-size-5-mobile is-flex is-flex-wrap-wrap is-justify-content-center"
@@ -135,17 +135,12 @@
   <div class="container">
     <div class="columns is-centered has-text-centered">
       <div class="column is-full-width">
-        <h2 class="title is-4">
-          We propose a masked modeling-based segmentation architecture that jointly learns EMG and user intent, 
-          and can predict the desired hand pose from EMG data at every timestep, with low latency and high accuracy. The model is 
-          capable of zero-shot generalization and maintains high performance without any subject-specific calibration. The combination of 
-          low latency, high accuracy and predicted pose stability  make this model well-suited for controlling robotic devices.
-        </h2>
-        <div class="columns is-centered has-text-centered">
-          <div class="column is-full-width">
-            <h3 class="title is-4"></h3>
-          </div>
-        </div>
+        <!--h2 class="title is-4"-->
+          We propose ReactEMG, a model that can predict the user's desired hand pose from forearm EMG data at every timestep, 
+          with low latency and high accuracy. Our masked segmentation architecture jointly learns EMG and user intent, and is 
+          capable of zero-shot generalization at high accuracy without any subject-specific calibration. The combination of low 
+          latency, high accuracy and predicted pose stability make ReactEMG well-suited for controlling robotic devices.
+        <!--/h2-->
       </div>
     </div>
   </div>
@@ -176,10 +171,10 @@
       <div class="columns is-centered has-text-centered">
         <div class="column is-full-width">
           <!-- Change heading to: "Visuo-Tactile Pretraining & Downstream Imitation Learning" -->
-          <h2 class="title is-3">Offline EMG Model Intent Detection</h2>
+          <h2 class="title is-3">Intent Detection Examples</h2>
           <div class="content has-text-justified">
             <div class="column is-full-width" style="color: grey;">
-              <b>(1) Same Subject, Different Task</b>. On a new, unseeen subject, our model can accurately detects open and close intents across diverse real-world tasks that contain different arm movements.
+              <b>(1) Same Subject, Different Task</b>. On a new, unseeen subject, ReactEMG accurately detects open and close intents across diverse real-world tasks that contain different arm movements.
             </div>
           </div>
         </div>
@@ -206,7 +201,7 @@
         <div class="column is-full-width">
           <div class="content has-text-left">
             <div class="column is-full-width" style="color: grey;">
-              <b>(2) Same Task, Different Subjects</b>. In the static hanging task—where subjects perform open and close gestures while keeping their arm hanging at their side—our model accurately detects open and close intents across different subjects, even when their EMG signals exhibit vastly different coactivation patterns.
+              <b>(2) Same Task, Different Subjects</b>. In the static hanging task (subjects perform open and close gestures with the arm hanging freely at the side) ReactEMG accurately detects intents across different subjects, even when EMG signals exhibit vastly different coactivation patterns.
             </div>
           </div>
         </div>
@@ -266,10 +261,10 @@
     <div class="container">
       <div class="columns is-centered has-text-centered">
         <div class="column is-full-width">
-          <h2 class="title is-3">New Metrics: Transition Metrics</h2>
+          <h2 class="title is-3">Metric for Device Control</h2>
           <div class="content has-text-justified">
             <p>
-              Unlike standard per-timestep accuracy metrics that don't capture real-world control dynamics, <strong>Transition Metrics</strong> assess both the speed and stability of intent changes. For each actual intent transition, the model must predict the new intent at least once within a brief “reaction buffer” and then sustain that correct label through the ensuing “maintenance period" until the next transition. By enforcing prompt detection and penalizing any flicker, these metrics provide a rigorous measure of continuous-control performance.
+              While traditional metrics such as per-timestep raw accuracy are important, they also hide situations where a transition to a new gesture is detected with delay, or maintenance of a stable gesture exhibits unwanted flicker in the prediction. To capture such cases, we use a new metric dubbed <strong>transition detection accuracy</strong>. According to this metric, a transition is considered to be successfully detected only if the model output correctly transitions between intents close enough to the ground truth change ("reaction buffer" in the image below), and exhibits no instability either before or after the transition ("maintenance period").
             </p>
           </div>
         </div>
@@ -291,6 +286,20 @@
         </div>
       </div>
   </section>
+
+    <br><br>
+  <section class="representation">
+    <div class="container">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-full-width">
+          <h2 class="title is-3">Metric for Device Control</h2>
+          <div class="content has-text-justified">
+            <p>
+              ReactEMG outperforms baselines on both raw accuracy and transition accuracy, particularly on datasets exhibiting direct transitions between different hand gestures and maintenance windows of varying lenghts, suggesting future applicability to controlling devices such as wearable robots.
+            </p>
+          </div>
+        </div>
+      </div>
 
 
 </html>
